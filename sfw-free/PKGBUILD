@@ -1,5 +1,5 @@
 pkgname=sfw-free
-pkgver=1.10.0
+pkgver=1.12.0
 pkgrel=1
 pkgdesc="Socket Workflow (free tier) — supply chain security CLI"
 arch=('x86_64' 'aarch64')
@@ -8,11 +8,11 @@ license=('custom')
 provides=('sfw')
 options=('!strip')
 
-source_x86_64=("${pkgname}-${pkgver}-x86_64::https://github.com/SocketDev/sfw-free/releases/download/v${pkgver}/sfw-free-linux-x86_64")
-source_aarch64=("${pkgname}-${pkgver}-aarch64::https://github.com/SocketDev/sfw-free/releases/download/v${pkgver}/sfw-free-linux-arm64")
+source_x86_64=("${pkgname}-${pkgver}-x86_64::${url}/releases/download/v${pkgver}/sfw-free-linux-x86_64")
+source_aarch64=("${pkgname}-${pkgver}-aarch64::${url}/releases/download/v${pkgver}/sfw-free-linux-arm64")
 
-sha256sums_x86_64=('1ea16f15f1217bde66ac9c7d0262c7126b7bb1b2d60e14e8fa0982456139ae6e')
-sha256sums_aarch64=('d7e969c17e6d23ac1cb0dea81ff87ef9bca2d83570270d91aab14b2a7fb66ad4')
+sha256sums_x86_64=('51824f02a242f892c61c42223e05b7e82bb624762337f026afc2ac229ffcade7')
+sha256sums_aarch64=('598c8d19c80832ef5ca7fdb0a9fc35c045847fd02889126a7115c0345a478da3')
 
 prepare() {
   chmod +x "${srcdir}/${pkgname}-${pkgver}-${CARCH}"
