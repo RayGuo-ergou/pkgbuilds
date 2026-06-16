@@ -27,11 +27,15 @@ fi
 echo "Fetching $AUR_URL ..."
 git clone --depth 1 "$AUR_URL" "$TMPDIR/$PKG"
 
+# Create a source marker file inside the package directory
+echo "$AUR_URL" >"$TMPDIR/$PKG/.clone.source"
+git -C "$TMPDIR/$PKG" log -1 --format="last_commit_time=%cI" >>"$TMPDIR/$PKG/.clone.source"
+
 # Remove the nested .git directory so it becomes a regular subdir of the parent repo
 rm -rf "$TMPDIR/$PKG/.git"
 
-# Create a source marker file inside the package directory
-echo "$AUR_URL" >"$TMPDIR/$PKG/.clone.source"
+# Ensure .clone.source is not excluded by blanket gitignore rules
+echo "!.clone.source" >>"$TMPDIR/$PKG/.gitignore"
 
 if [ -d "$PKG" ]; then
     if diff -rq "$PKG" "$TMPDIR/$PKG" >/dev/null 2>&1; then
