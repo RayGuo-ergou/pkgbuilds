@@ -4,3 +4,4 @@
 dockerd-rootless-*.sh
 pkg
 src
+!.clone.source
