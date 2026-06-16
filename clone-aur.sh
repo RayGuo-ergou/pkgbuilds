@@ -35,6 +35,7 @@ git -C "$TMPDIR/$PKG" log -1 --format="last_commit_time=%cI" >>"$TMPDIR/$PKG/.cl
 rm -rf "$TMPDIR/$PKG/.git"
 
 # Ensure .clone.source is not excluded by blanket gitignore rules
+echo >>"$TMPDIR/$PKG/.gitignore"
 echo "!.clone.source" >>"$TMPDIR/$PKG/.gitignore"
 
 if [ -d "$PKG" ]; then
