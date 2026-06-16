@@ -11,6 +11,11 @@ fi
 PKG="$1"
 AUR_URL="https://aur.archlinux.org/${PKG}.git"
 
+if [ -z "$(git ls-remote "$AUR_URL" 2>/dev/null)" ]; then
+    echo "Error: package '$PKG' not found on AUR."
+    exit 1
+fi
+
 if [ -d "$PKG" ]; then
     echo "Error: directory '$PKG' already exists."
     exit 1
