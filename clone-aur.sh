@@ -14,7 +14,7 @@ AUR_URL="https://aur.archlinux.org/${PKG}.git"
 TMPDIR=$(mktemp -d)
 
 cleanup() {
-    echo "cleaning up $TMPDIR"
+    echo "Cleaning up $TMPDIR"
     rm -rf "$TMPDIR"
 }
 trap cleanup EXIT
