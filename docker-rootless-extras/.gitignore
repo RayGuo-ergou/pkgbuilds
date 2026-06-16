@@ -1,0 +1,6 @@
+*.log
+*.tar
+*.tar.*
+dockerd-rootless-*.sh
+pkg
+src
