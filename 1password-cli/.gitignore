@@ -7,4 +7,5 @@ src/
 *.tar.zst
 
 # source files
-*.zip!.clone.source
+*.zip
+!.clone.source
