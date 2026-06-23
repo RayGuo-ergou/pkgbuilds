@@ -4,6 +4,9 @@ set -euo pipefail
 # Usage: ./clone-aur.sh <pkgname>
 # Clones a new AUR package or updates an existing one in this repository.
 
+# TODO: check update
+# curl "https://aur.archlinux.org/rpc/v5/info?arg[]={pkgname}"
+
 if [ -z "${1:-}" ]; then
     echo "Usage: $0 <pkgname>"
     exit 1
