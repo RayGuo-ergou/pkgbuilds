@@ -1,0 +1,30 @@
+pkgname=ni
+pkgver=30.6.0
+pkgrel=1
+pkgdesc='Use the right package manager'
+arch=('any')
+url='https://github.com/antfu-collective/ni'
+license=('MIT')
+# I dont want to install npm via pacman, even makedepends
+# so this should install after node setup (with tj/n)
+# or uncomment below
+# depends=('nodejs>=20.19.0')
+# makedepends=('npm')
+source=("${pkgname}-${pkgver}.tgz::https://registry.npmjs.org/@antfu/ni/-/ni-${pkgver}.tgz")
+noextract=("${pkgname}-${pkgver}.tgz")
+sha256sums=('239e6b5c626cbb7405d5605e304504534b43c8a7584aeeba9a58e1a55caa1eb0')
+
+build() {
+  npm install --global \
+    --prefix "${srcdir}/install/usr" \
+    --cache "${srcdir}/npm-cache" \
+    --ignore-scripts --no-audit --no-fund \
+    "${srcdir}/${pkgname}-${pkgver}.tgz"
+}
+
+package() {
+  install -d "${pkgdir}/usr"
+  cp -a "${srcdir}/install/usr/." "${pkgdir}/usr/"
+  install -Dm644 "${pkgdir}/usr/lib/node_modules/@antfu/ni/LICENSE" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
