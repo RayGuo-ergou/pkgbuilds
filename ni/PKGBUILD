@@ -1,6 +1,6 @@
 pkgname=ni
 pkgver=30.6.0
-pkgrel=1
+pkgrel=2
 pkgdesc='Use the right package manager'
 arch=('any')
 url='https://github.com/antfu-collective/ni'
@@ -10,11 +10,12 @@ license=('MIT')
 # or uncomment below
 # depends=('nodejs>=20.19.0')
 # makedepends=('pnpm')
-source=("${pkgname}-${pkgver}.tgz::https://registry.npmjs.org/@antfu/ni/-/ni-${pkgver}.tgz")
-noextract=("${pkgname}-${pkgver}.tgz")
-sha256sums=('239e6b5c626cbb7405d5605e304504534b43c8a7584aeeba9a58e1a55caa1eb0')
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('SKIP')
 
 build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+
   local -a installer=(pnpm)
   if command -v sfw >/dev/null 2>&1; then
     installer=(sfw pnpm)
@@ -23,28 +24,29 @@ build() {
     printf 'sfw not found; installing dependencies with pnpm directly\n'
   fi
 
-  mkdir -p "${srcdir}/install"
-  printf '%s\n' \
-    'nodeLinker: isolated' \
-    'packageImportMethod: copy' \
-    'enableGlobalVirtualStore: false' \
-    >"${srcdir}/install/pnpm-workspace.yaml"
-  "${installer[@]}" add \
-    --workspace-root \
-    --dir "${srcdir}/install" \
-    --store-dir "${srcdir}/pnpm-store" \
+  # Preserve upstream's workspace catalogs and lockfile.
+  "${installer[@]}" install \
+    --frozen-lockfile \
     --ignore-scripts \
-    "${srcdir}/${pkgname}-${pkgver}.tgz"
+    --config.node-linker=isolated \
+    --config.package-import-method=copy \
+    --config.enableGlobalVirtualStore=false \
+    --store-dir "${srcdir}/pnpm-store" \
+    --prod=false
+  "${installer[@]}" run build
+  "${installer[@]}" prune --prod --ignore-scripts
 }
 
 package() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+
   install -d "${pkgdir}/usr/lib/${pkgname}" "${pkgdir}/usr/bin"
-  cp -a "${srcdir}/install/node_modules" "${pkgdir}/usr/lib/${pkgname}/"
+  cp -a bin dist node_modules package.json "${pkgdir}/usr/lib/${pkgname}/"
   local cmd
   for cmd in na nd ni nr nci nlx nun nup; do
-    ln -s "../lib/${pkgname}/node_modules/@antfu/ni/bin/${cmd}.mjs" \
+    ln -s "../lib/${pkgname}/bin/${cmd}.mjs" \
       "${pkgdir}/usr/bin/${cmd}"
   done
-  install -Dm644 "${pkgdir}/usr/lib/${pkgname}/node_modules/@antfu/ni/LICENSE" \
+  install -Dm644 LICENSE \
     "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
