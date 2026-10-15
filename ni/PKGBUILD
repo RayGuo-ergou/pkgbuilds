@@ -5,26 +5,46 @@ pkgdesc='Use the right package manager'
 arch=('any')
 url='https://github.com/antfu-collective/ni'
 license=('MIT')
-# I dont want to install npm via pacman, even makedepends
-# so this should install after node setup (with tj/n)
+# I dont want to install Node.js or pnpm via pacman, even makedepends
+# so build after node setup (with tj/n) and installing pnpm
 # or uncomment below
 # depends=('nodejs>=20.19.0')
-# makedepends=('npm')
+# makedepends=('pnpm')
 source=("${pkgname}-${pkgver}.tgz::https://registry.npmjs.org/@antfu/ni/-/ni-${pkgver}.tgz")
 noextract=("${pkgname}-${pkgver}.tgz")
 sha256sums=('239e6b5c626cbb7405d5605e304504534b43c8a7584aeeba9a58e1a55caa1eb0')
 
 build() {
-  npm install --global \
-    --prefix "${srcdir}/install/usr" \
-    --cache "${srcdir}/npm-cache" \
-    --ignore-scripts --no-audit --no-fund \
+  local -a installer=(pnpm)
+  if command -v sfw >/dev/null 2>&1; then
+    installer=(sfw pnpm)
+    printf 'Installing dependencies with sfw pnpm\n'
+  else
+    printf 'sfw not found; installing dependencies with pnpm directly\n'
+  fi
+
+  mkdir -p "${srcdir}/install"
+  printf '%s\n' \
+    'nodeLinker: isolated' \
+    'packageImportMethod: copy' \
+    'enableGlobalVirtualStore: false' \
+    >"${srcdir}/install/pnpm-workspace.yaml"
+  "${installer[@]}" add \
+    --workspace-root \
+    --dir "${srcdir}/install" \
+    --store-dir "${srcdir}/pnpm-store" \
+    --ignore-scripts \
     "${srcdir}/${pkgname}-${pkgver}.tgz"
 }
 
 package() {
-  install -d "${pkgdir}/usr"
-  cp -a "${srcdir}/install/usr/." "${pkgdir}/usr/"
-  install -Dm644 "${pkgdir}/usr/lib/node_modules/@antfu/ni/LICENSE" \
+  install -d "${pkgdir}/usr/lib/${pkgname}" "${pkgdir}/usr/bin"
+  cp -a "${srcdir}/install/node_modules" "${pkgdir}/usr/lib/${pkgname}/"
+  local cmd
+  for cmd in na nd ni nr nci nlx nun nup; do
+    ln -s "../lib/${pkgname}/node_modules/@antfu/ni/bin/${cmd}.mjs" \
+      "${pkgdir}/usr/bin/${cmd}"
+  done
+  install -Dm644 "${pkgdir}/usr/lib/${pkgname}/node_modules/@antfu/ni/LICENSE" \
     "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }

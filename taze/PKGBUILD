@@ -1,0 +1,47 @@
+pkgname=taze
+pkgver=21.3.0
+pkgrel=1
+pkgdesc='A modern CLI tool that keeps your dependencies fresh in any repo and monorepo'
+arch=('any')
+url='https://github.com/antfu-collective/taze'
+license=('MIT')
+# I dont want to install Node.js or pnpm via pacman, even makedepends
+# so build after node setup (with tj/n) and installing pnpm
+# or uncomment below
+# depends=('nodejs>=20.19.0')
+# makedepends=('pnpm')
+source=("${pkgname}-${pkgver}.tgz::https://registry.npmjs.org/taze/-/taze-${pkgver}.tgz")
+noextract=("${pkgname}-${pkgver}.tgz")
+sha256sums=('a3cd18531b35d53417ddcf287363a650da3adf61129ca45ca6441d0e1edc1b30')
+
+build() {
+  local -a installer=(pnpm)
+  if command -v sfw >/dev/null 2>&1; then
+    installer=(sfw pnpm)
+    printf 'Installing dependencies with sfw pnpm\n'
+  else
+    printf 'sfw not found; installing dependencies with pnpm directly\n'
+  fi
+
+  mkdir -p "${srcdir}/install"
+  printf '%s\n' \
+    'nodeLinker: isolated' \
+    'packageImportMethod: copy' \
+    'enableGlobalVirtualStore: false' \
+    >"${srcdir}/install/pnpm-workspace.yaml"
+  "${installer[@]}" add \
+    --workspace-root \
+    --dir "${srcdir}/install" \
+    --store-dir "${srcdir}/pnpm-store" \
+    --ignore-scripts \
+    "${srcdir}/${pkgname}-${pkgver}.tgz"
+}
+
+package() {
+  install -d "${pkgdir}/usr/lib/${pkgname}" "${pkgdir}/usr/bin"
+  cp -a "${srcdir}/install/node_modules" "${pkgdir}/usr/lib/${pkgname}/"
+  ln -s "../lib/${pkgname}/node_modules/taze/bin/taze.mjs" \
+    "${pkgdir}/usr/bin/taze"
+  install -Dm644 "${pkgdir}/usr/lib/${pkgname}/node_modules/taze/LICENSE" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
