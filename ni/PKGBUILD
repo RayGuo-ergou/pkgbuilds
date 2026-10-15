@@ -1,6 +1,6 @@
 pkgname=ni
 pkgver=30.6.0
-pkgrel=2
+pkgrel=3
 pkgdesc='Use the right package manager'
 arch=('any')
 url='https://github.com/antfu-collective/ni'
@@ -13,6 +13,22 @@ license=('MIT')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
 sha256sums=('SKIP')
 
+prepare() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+
+  # Preserve upstream's catalogs while sharing packaging settings across commands.
+  sed -i '/^# BEGIN packaging settings$/,/^# END packaging settings$/d' pnpm-workspace.yaml
+  cat >>pnpm-workspace.yaml <<'EOF'
+
+# BEGIN packaging settings
+nodeLinker: isolated
+packageImportMethod: copy
+enableGlobalVirtualStore: false
+storeDir: ../pnpm-store
+# END packaging settings
+EOF
+}
+
 build() {
   cd "${srcdir}/${pkgname}-${pkgver}"
 
@@ -24,14 +40,9 @@ build() {
     printf 'sfw not found; installing dependencies with pnpm directly\n'
   fi
 
-  # Preserve upstream's workspace catalogs and lockfile.
   "${installer[@]}" install \
     --frozen-lockfile \
     --ignore-scripts \
-    --config.node-linker=isolated \
-    --config.package-import-method=copy \
-    --config.enableGlobalVirtualStore=false \
-    --store-dir "${srcdir}/pnpm-store" \
     --prod=false
   "${installer[@]}" run build
   "${installer[@]}" prune --prod --ignore-scripts
